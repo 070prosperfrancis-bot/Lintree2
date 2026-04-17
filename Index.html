@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prosper — Scale. Influence. Live.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Vollkorn:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    img { max-width: 100%; display: block; }
+
+    :root {
+      --gold:   #f0a500;
+      --amber:  #e86c1a;
+      --purple: #6a22e8;
+      --rose:   #c81f6e;
+      --deep:   #060009;
+      --card:   rgba(255,255,255,.045);
+      --border: rgba(255,255,255,.09);
+      --text:   #ede6ff;
+      --muted:  rgba(237,230,255,.52);
+      --h: 'Cormorant Garamond', Georgia, serif;
+      --b: 'Vollkorn', Georgia, serif;
+      --r: 18px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--deep);
+      color: var(--text);
+      font-family: var(--b);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    @media (hover: none) {
+      body { cursor: auto; }
+      #cursor, #cursor-ring { display: none; }
+    }
+
+    /* ══════════════════════════════════════
+       BACKGROUND GLOW SYSTEM
+    ══════════════════════════════════════ */
+
+    /* Static deep noise grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: .028;
+    }
+
+    /* Ambient orbs — more of them, more vibrant */
+    .orb {
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      animation: drift 22s ease-in-out infinite alternate;
+    }
+    .orb-1 {
+      width: min(700px,110vw); height: min(700px,110vw);
+      background: radial-gradient(circle, rgba(106,34,232,.55) 0%, transparent 70%);
+      top: -25%; left: -20%; animation-duration: 22s;
+    }
+    .orb-2 {
+      width: min(550px,95vw); height: min(550px,95vw);
+      background: radial-gradient(circle, rgba(232,108,26,.45) 0%, transparent 70%);
+      bottom: -15%; right: -15%; animation-delay: -8s; animation-duration: 19s;
+    }
+    .orb-3 {
+      width: min(380px,70vw); height: min(380px,70vw);
+      background: radial-gradient(circle, rgba(200,31,110,.4) 0%, transparent 70%);
+      top: 38%; left: 28%; animation-delay: -14s; animation-duration: 26s;
+    }
+    .orb-4 {
+      width: min(260px,55vw); height: min(260px,55vw);
+      background: radial-gradient(circle, rgba(240,165,0,.3) 0%, transparent 70%);
+      top: 60%; left: 55%; animation-delay: -5s; animation-duration: 17s;
+    }
+    .orb-5 {
+      width: min(200px,45vw); height: min(200px,45vw);
+      background: radial-gradient(circle, rgba(106,34,232,.35) 0%, transparent 70%);
+      top: 15%; right: 5%; animation-delay: -11s; animation-duration: 24s;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(28px,-18px) scale(1.05); }
+      66%  { transform: translate(-14px,32px) scale(.97); }
+      100% { transform: translate(40px,20px) scale(1.08); }
+    }
+
+    /* Scroll-parallax glow that moves with page scroll */
+    #scroll-glow {
+      position: fixed; pointer-events: none; z-index: 0;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(106,34,232,.18) 0%, transparent 65%);
+      transform: translate(-50%, -50%);
+      transition: top .8s cubic-bezier(.25,.46,.45,.94);
+      left: 50%;
+      top: 30%;
+    }
+
+    /* Mouse-tracking spotlight glow */
+    #mouse-glow {
+      position: fixed; pointer-events: none; z-index: 1;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(240,165,0,.08) 0%, transparent 65%);
+      transform: translate(-50%,-50%);
+      transition: left .25s ease-out, top .25s ease-out;
+      left: 50%; top: 50%;
+    }
+
+    /* ══════════════════════════════════════
+       CURSOR
+    ══════════════════════════════════════ */
+    #cursor {
+      position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+      width: 10px; height: 10px; background: var(--gold);
+      border-radius: 50%; transform: translate(-50%,-50%);
+      transition: width .2s, height .2s, background .2s;
+      mix-blend-mode: difference;
+    }
+    #cursor-ring {
+      position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
+      width: 36px; height: 36px; border: 1.5px solid rgba(240,165,0,.45);
+      border-radius: 50%; transform: translate(-50%,-50%);
+      transition: width .3s, height .3s, border-color .3s;
+    }
+    .cursor-grow #cursor       { width: 16px; height: 16px; background: var(--amber); }
+    .cursor-grow #cursor-ring  { width: 50px; height: 50px; border-color: rgba(240,165,0,.9); }
+
+    /* ══════════════════════════════════════
+       PARTICLES CANVAS
+    ══════════════════════════════════════ */
+    #particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .5; }
+
+    /* ══════════════════════════════════════
+       CLICK BURST LAYER
+    ══════════════════════════════════════ */
+    #click-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; overflow: hidden; }
+
+    .click-ring {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      transform: translate(-50%,-50%) scale(0);
+      animation: click-expand .7s cubic-bezier(.2,.8,.3,1) forwards;
+    }
+    @keyframes click-expand {
+      0%   { transform: translate(-50%,-50%) scale(0);   opacity: .9; }
+      100% { transform: translate(-50%,-50%) scale(1);   opacity: 0; }
+    }
+
+    .click-spark {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      animation: spark-fly .6s ease-out forwards;
+    }
+    @keyframes spark-fly {
+      0%   { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+    }
+
+    /* ══════════════════════════════════════
+       TICKER
+    ══════════════════════════════════════ */
+    .ticker-wrap {
+      width: 100%; overflow: hidden;
+      background: linear-gradient(90deg, var(--purple), var(--amber));
+      padding: 9px 0; position: relative; z-index: 10;
+      /* Ticker glow underneath */
+      box-shadow: 0 0 40px 8px rgba(106,34,232,.4), 0 0 80px 20px rgba(232,108,26,.2);
+    }
+    .ticker { display: flex; white-space: nowrap; animation: ticker 24s linear infinite; }
+    .ticker span {
+      font-family: var(--b); font-size: .7rem; font-weight: 600;
+      letter-spacing: .2em; text-transform: uppercase; padding: 0 2rem; color: #fff;
+    }
+    .ticker span::after { content: '✦'; margin-left: 2rem; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ══════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════ */
+    .page {
+      max-width: 640px; width: 100%; margin: 0 auto;
+      padding: 0 clamp(16px,5vw,32px) 80px;
+      position: relative; z-index: 2;
+    }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+    .hero { text-align: center; padding: clamp(40px,8vw,70px) 0 28px; }
+
+    .avatar-wrap {
+      width: clamp(90px,22vw,112px); height: clamp(90px,22vw,112px);
+      margin: 0 auto 22px; border-radius: 50%; padding: 3px;
+      background: linear-gradient(135deg, var(--purple), var(--gold));
+      position: relative;
+      animation: avatar-pulse 3.5s ease-in-out infinite;
+    }
+    /* Glow halo behind avatar */
+    .avatar-wrap::before {
+      content: '';
+      position: absolute; inset: -12px; border-radius: 50%; z-index: -1;
+      background: radial-gradient(circle, rgba(106,34,232,.5) 0%, rgba(240,165,0,.2) 50%, transparent 70%);
+      animation: halo-breathe 3.5s ease-in-out infinite;
+    }
+    .avatar-wrap::after {
+      content: '';
+      position: absolute; inset: -24px; border-radius: 50%; z-index: -2;
+      background: radial-gradient(circle, rgba(232,108,26,.18) 0%, transparent 65%);
+      animation: halo-breathe 3.5s ease-in-out infinite reverse;
+    }
+    @keyframes avatar-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(106,34,232,.5), 0 0 0 0 rgba(240,165,0,.25); }
+      50%      { box-shadow: 0 0 0 14px rgba(106,34,232,0), 0 0 0 28px rgba(240,165,0,0); }
+    }
+    @keyframes halo-breathe {
+      0%,100% { opacity: .7; transform: scale(1); }
+      50%      { opacity: 1; transform: scale(1.12); }
+    }
+    .avatar-wrap img {
+      width: 100%; height: 100%; border-radius: 50%;
+      object-fit: cover; object-position: top center; background: #1a0030;
+    }
+    .avatar-wrap img.errored { display: none; }
+    .avatar-fallback {
+      display: none; width: 100%; height: 100%; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--amber));
+      align-items: center; justify-content: center;
+      font-family: var(--h); font-size: 2rem; font-weight: 700; color: #fff;
+    }
+    .avatar-wrap img.errored + .avatar-fallback { display: flex; }
+
+    .hero-name {
+      font-family: var(--h); font-size: clamp(1rem,3.5vw,1.1rem); font-weight: 600;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
+      /* Subtle text glow */
+      text-shadow: 0 0 20px rgba(240,165,0,.5), 0 0 40px rgba(240,165,0,.2);
+    }
+    .gift-text {
+      font-family: var(--h); font-size: clamp(1.55rem,5.5vw,2.15rem);
+      font-weight: 700; line-height: 1.26; color: #fff;
+      margin-bottom: 12px; letter-spacing: -.01em;
+    }
+    .gift-text em {
+      background: linear-gradient(90deg, var(--gold), var(--amber));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; font-style: italic;
+      filter: drop-shadow(0 0 12px rgba(240,165,0,.35));
+    }
+    .gift-sub {
+      font-size: clamp(.86rem,2.5vw,.96rem); color: var(--muted);
+      font-weight: 400; max-width: 420px; margin: 0 auto; line-height: 1.72;
+    }
+
+    /* ══════════════════════════════════════
+       DIVIDER
+    ══════════════════════════════════════ */
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: clamp(24px,5vw,38px) 0 clamp(20px,4vw,30px);
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span {
+      font-family: var(--b); font-size: .68rem; text-transform: uppercase;
+      letter-spacing: .22em; color: var(--muted); white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════════
+       VIDEO CARD
+    ══════════════════════════════════════ */
+    .video-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden; backdrop-filter: blur(12px);
+      opacity: 0; transform: translateY(32px) scale(.98);
+      transition: opacity .8s, transform .8s;
+      /* Card glow on visible */
+      position: relative;
+    }
+    .video-card::before {
+      content: ''; position: absolute; inset: -1px; border-radius: var(--r); z-index: -1;
+      background: linear-gradient(135deg, rgba(106,34,232,.3), rgba(240,165,0,.15), rgba(232,108,26,.2));
+      opacity: 0; transition: opacity .8s;
+    }
+    .video-card.visible { opacity: 1; transform: translateY(0) scale(1); }
+    .video-card.visible::before { opacity: 1; }
+    .video-embed {
+      width: 100%; aspect-ratio: 16/9; background: #08000f;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .video-embed iframe, .video-embed video { width: 100%; height: 100%; border: none; display: block; }
+    .video-placeholder {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; height: 100%; gap: 14px; color: var(--muted); padding: 20px; text-align: center;
+    }
+    .play-icon {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--amber));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 30px rgba(106,34,232,.5), 0 0 60px rgba(232,108,26,.2);
+      animation: play-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes play-pulse {
+      0%,100% { box-shadow: 0 0 20px rgba(106,34,232,.4), 0 0 40px rgba(232,108,26,.15); transform: scale(1); }
+      50%      { box-shadow: 0 0 40px rgba(106,34,232,.7), 0 0 80px rgba(232,108,26,.3); transform: scale(1.06); }
+    }
+    .play-icon svg { width: 20px; height: 20px; fill: #fff; margin-left: 3px; }
+    .video-placeholder p { font-size: .82rem; }
+    .video-placeholder small { font-size: .7rem; opacity: .5; }
+
+    /* ══════════════════════════════════════
+       CTA BUTTON
+    ══════════════════════════════════════ */
+    .cta-btn {
+      display: block; width: 100%; margin-top: 18px;
+      padding: clamp(15px,4vw,18px) 24px;
+      background: linear-gradient(90deg, var(--purple), var(--amber));
+      border: none; border-radius: 13px;
+      font-family: var(--h); font-size: clamp(1rem,3vw,1.15rem); font-weight: 700;
+      letter-spacing: .04em; color: #fff; text-align: center; text-decoration: none;
+      cursor: none; position: relative; overflow: hidden;
+      transition: transform .22s, box-shadow .22s;
+      opacity: 0; transform: translateY(20px);
+      box-shadow: 0 4px 30px rgba(106,34,232,.3), 0 2px 15px rgba(232,108,26,.2);
+    }
+    .cta-btn.visible {
+      opacity: 1; transform: translateY(0);
+      transition: opacity .7s .15s, transform .7s .15s, box-shadow .22s;
+    }
+    /* Shimmer sweep */
+    .cta-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%);
+      transform: translateX(-100%);
+      animation: btn-shimmer 3.5s ease-in-out infinite;
+    }
+    @keyframes btn-shimmer {
+      0%,60% { transform: translateX(-100%); }
+      80%,100% { transform: translateX(100%); }
+    }
+    .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 50px rgba(106,34,232,.55), 0 8px 25px rgba(232,108,26,.3); }
+    @media (hover: none) { .cta-btn { cursor: auto; } }
+
+    /* ══════════════════════════════════════
+       ANNOUNCEMENT CARD
+    ══════════════════════════════════════ */
+    .announcement-card {
+      margin-top: 18px; border-radius: var(--r);
+      padding: clamp(22px,5vw,30px) clamp(18px,5vw,28px);
+      background: var(--card); border: 1px solid var(--border);
+      position: relative; overflow: hidden; backdrop-filter: blur(12px);
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .8s .1s, transform .8s .1s;
+    }
+    .announcement-card.visible { opacity: 1; transform: translateY(0); }
+    /* Animated top border glow */
+    .announcement-card::before {
+      content: ''; position: absolute; top: 0; left: -100%; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--purple), var(--gold), var(--amber), transparent);
+      animation: border-travel 3s ease-in-out infinite;
+    }
+    @keyframes border-travel {
+      0%   { left: -100%; right: 100%; }
+      50%  { left: 0%;    right: 0%; }
+      100% { left: 100%;  right: -100%; }
+    }
+    /* Inner glow blob */
+    .announcement-card::after {
+      content: ''; position: absolute; pointer-events: none;
+      width: 300px; height: 300px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(106,34,232,.12) 0%, transparent 70%);
+      bottom: -100px; right: -80px;
+      animation: inner-drift 8s ease-in-out infinite alternate;
+    }
+    @keyframes inner-drift {
+      from { transform: translate(0,0); }
+      to   { transform: translate(-20px,-20px); }
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(90deg, rgba(106,34,232,.22), rgba(232,108,26,.16));
+      border: 1px solid rgba(240,165,0,.22); border-radius: 30px; padding: 5px 14px;
+      font-family: var(--b); font-size: .67rem; font-weight: 600;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
+    }
+    .badge .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--gold);
+      animation: blink 1.5s ease-in-out infinite;
+      box-shadow: 0 0 6px var(--gold);
+    }
+    @keyframes blink { 0%,100% { opacity:1; box-shadow: 0 0 6px var(--gold); } 50% { opacity:.18; box-shadow: none; } }
+
+    .announcement-title {
+      font-family: var(--h); font-size: clamp(1.3rem,4.5vw,1.72rem);
+      font-weight: 700; line-height: 1.24; margin-bottom: 10px; position: relative; z-index: 1;
+    }
+    .announcement-title span {
+      background: linear-gradient(90deg, var(--gold), var(--amber));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(240,165,0,.3));
+    }
+    .announcement-body {
+      font-size: clamp(.84rem,2.4vw,.92rem); color: var(--muted); line-height: 1.72;
+      margin-bottom: 20px; position: relative; z-index: 1;
+    }
+    .waitlist-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      padding: clamp(12px,3.5vw,15px) 22px;
+      background: rgba(240,165,0,.09); border: 1px solid rgba(240,165,0,.32);
+      border-radius: 12px; font-family: var(--h);
+      font-size: clamp(.92rem,2.8vw,1rem); font-weight: 700; letter-spacing: .04em;
+      color: var(--gold); text-decoration: none; cursor: none; width: 100%;
+      transition: background .25s, border-color .25s, transform .2s, box-shadow .25s;
+      position: relative; z-index: 1;
+    }
+    .waitlist-btn:hover {
+      background: rgba(240,165,0,.17); border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(240,165,0,.2);
+    }
+    @media (hover: none) { .waitlist-btn { cursor: auto; } }
+
+    /* ══════════════════════════════════════
+       SOCIAL LINKS
+    ══════════════════════════════════════ */
+    .social-section { margin-top: clamp(28px,6vw,44px); }
+    .social-grid {
+      display: grid; grid-template-columns: repeat(2,1fr);
+      gap: 12px; margin-top: 16px;
+    }
+    @media (max-width: 340px) { .social-grid { grid-template-columns: 1fr; } }
+
+    .social-link {
+      display: flex; align-items: center; gap: 13px;
+      padding: clamp(13px,3.5vw,17px) clamp(12px,3.5vw,18px);
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; text-decoration: none; color: var(--text);
+      cursor: none; position: relative; overflow: hidden;
+      transition: transform .25s, border-color .25s, background .25s, box-shadow .25s;
+      opacity: 0; transform: translateY(18px);
+    }
+    .social-link.visible { opacity: 1; transform: translateY(0); }
+    .social-link:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--social-color);
+      background: rgba(255,255,255,.07);
+      box-shadow: 0 12px 36px color-mix(in srgb, var(--social-color) 25%, transparent),
+                  0 0 0 1px color-mix(in srgb, var(--social-color) 40%, transparent);
+    }
+    /* Sweep shimmer on hover */
+    .social-link::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.06) 50%, transparent 60%);
+      transform: translateX(-100%); transition: transform .45s;
+    }
+    .social-link:hover::before { transform: translateX(200%); }
+    /* Colour overlay */
+    .social-link::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--social-color), transparent);
+      opacity: 0; transition: opacity .28s;
+    }
+    .social-link:hover::after { opacity: .07; }
+    @media (hover: none) { .social-link { cursor: auto; } }
+
+    .social-icon {
+      width: clamp(36px,9vw,42px); height: clamp(36px,9vw,42px); border-radius: 10px;
+      flex-shrink: 0; background: var(--social-color);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 1;
+      transition: box-shadow .25s;
+    }
+    .social-link:hover .social-icon {
+      box-shadow: 0 0 16px color-mix(in srgb, var(--social-color) 60%, transparent),
+                  0 0 32px color-mix(in srgb, var(--social-color) 30%, transparent);
+    }
+    .social-icon svg { width: 18px; height: 18px; }
+    .social-info { position: relative; z-index: 1; overflow: hidden; min-width: 0; }
+    .social-name   { font-family: var(--h); font-size: clamp(.88rem,2.8vw,.96rem); font-weight: 700; }
+    .social-handle { font-size: clamp(.7rem,2.2vw,.75rem); color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .social-arrow  { margin-left: auto; font-size: .78rem; color: var(--muted); flex-shrink: 0; position: relative; z-index: 1; transition: transform .2s, color .2s; }
+    .social-link:hover .social-arrow { transform: translateX(4px); color: var(--text); }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    footer {
+      text-align: center; padding: clamp(30px,6vw,48px) 0 20px;
+      font-family: var(--b); font-size: .72rem; color: var(--muted); letter-spacing: .08em;
+    }
+    footer a { color: var(--gold); text-decoration: none; }
+
+    /* ══════════════════════════════════════
+       SCROLL REVEAL UTILITIES
+    ══════════════════════════════════════ */
+    .fade-up   { opacity: 0; transform: translateY(24px); transition: opacity .75s, transform .75s; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* Staggered children slide-in */
+    .slide-in { opacity: 0; transform: translateX(-18px); transition: opacity .6s, transform .6s; }
+    .slide-in.visible { opacity: 1; transform: translateX(0); }
+
+    /* ══════════════════════════════════════
+       KEYFRAMES
+    ══════════════════════════════════════ */
+    @keyframes ripple-wave { to { transform: translate(-50%,-50%) scale(1); opacity: 0; } }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Background layers -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="orb orb-5"></div>
+  <div id="scroll-glow"></div>
+  <div id="mouse-glow"></div>
+
+  <!-- Particles -->
+  <canvas id="particles"></canvas>
+
+  <!-- Click burst layer -->
+  <div id="click-layer"></div>
+
+  <!-- Ticker -->
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker">
+      <span>Scale Your Finances</span><span>Grow Your Influence</span>
+      <span>Live on Your Terms</span><span>Earn as an Affiliate</span>
+      <span>Join the Movement</span><span>Scale Your Finances</span>
+      <span>Grow Your Influence</span><span>Live on Your Terms</span>
+      <span>Earn as an Affiliate</span><span>Join the Movement</span>
+      <span>Scale Your Finances</span><span>Grow Your Influence</span>
+      <span>Live on Your Terms</span><span>Earn as an Affiliate</span>
+      <span>Join the Movement</span><span>Scale Your Finances</span>
+    </div>
+  </div>
+
+  <main class="page">
+
+    <header class="hero">
+      <div class="avatar-wrap">
+        <!--
+          PASTE YOUR POSTIMAGE DIRECT LINK as the src.
+          Example: src="https://i.postimg.cc/XXXXXXXX/prosper.jpg"
+        -->
+        <img src="https://i.postimg.cc/placeholder/prosper.jpg" alt="Prosper" id="avatar-img" />
+        <div class="avatar-fallback" aria-hidden="true">P</div>
+      </div>
+
+      <p class="hero-name fade-up">Prosper</p>
+
+      <h1 class="gift-text fade-up" style="transition-delay:.09s;">
+        My Gift to All Young People<br>
+        Who Want to <em>Scale Their Finance</em><br>
+        and Improve Their Life<br>
+        While Living Out <em>Influence</em>
+      </h1>
+      <p class="gift-sub fade-up" style="transition-delay:.18s;">
+        A free resource designed to transform your mindset, income, and impact.
+      </p>
+    </header>
+
+    <div class="divider fade-up" style="transition-delay:.24s;"><span>Watch First</span></div>
+
+    <div class="video-card">
+      <div class="video-embed">
+        <!--
+          ═══════════════════════════════════════════════════════
+          REPLACE THIS PLACEHOLDER WITH YOUR VIDEO EMBED CODE
+          ═══════════════════════════════════════════════════════
+          Option  1 — Streamable   <iframe src="https://streamable.com/e/VIDEOID" allowfullscreen></iframe>
+          Option  2 — Loom         <iframe src="https://www.loom.com/embed/VIDEOID" allowfullscreen></iframe>
+          Option  3 — Wistia       <script src="https://fast.wistia.com/embed/medias/ID.jsonp" async></script><div class="wistia_embed wistia_async_ID" style="height:100%;width:100%"></div>
+          Option  4 — Bunny.net    <iframe src="https://iframe.mediadelivery.net/embed/LIBID/VIDEOID" allowfullscreen></iframe>
+          Option  5 — Cloudflare   <iframe src="https://customer-XXXXX.cloudflarestream.com/VIDEOID/iframe" allowfullscreen></iframe>
+          Option  6 — Mux          <iframe src="https://stream.mux.com/PLAYBACKID" allowfullscreen></iframe>
+          Option  7 — Dailymotion  <iframe src="https://www.dailymotion.com/embed/video/VIDEOID" allowfullscreen></iframe>
+          Option  8 — Vidyard      <iframe src="https://play.vidyard.com/PLAYERID" allowfullscreen></iframe>
+          Option  9 — Sproutvideo  <iframe src="https://videos.sproutvideo.com/embed/VIDEOID/TOKEN" allowfullscreen></iframe>
+          Option 10 — Direct MP4   <video controls playsinline><source src="YOUR_FILE.mp4" type="video/mp4"></video>
+          DELETE the video-placeholder div once you add your embed.
+          ═══════════════════════════════════════════════════════
+        -->
+        <div class="video-placeholder">
+          <div class="play-icon">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p>Add your video embed here</p>
+          <small>10 hosting options listed in the HTML comments above</small>
+        </div>
+      </div>
+    </div>
+
+    <a href="#" class="cta-btn" id="affiliate-btn">
+      Join and Earn as an Affiliate &nbsp;&rarr;
+    </a>
+
+    <div class="announcement-card">
+      <div class="badge"><span class="dot"></span> Coming Soon</div>
+      <h2 class="announcement-title">
+        <span>Transformative Community</span><br>Short &mdash; Is Almost Here
+      </h2>
+      <p class="announcement-body">
+        An exclusive, high-impact community experience designed for young people ready to
+        level up their finances, influence, and lifestyle. Be among the first to know when
+        doors open &mdash; spots will be limited.
+      </p>
+      <a href="#" class="waitlist-btn" id="waitlist-btn">
+        Join the Waitlist &nbsp;&rarr;
+      </a>
+    </div>
+
+    <section class="social-section" aria-label="Follow Prosper">
+      <div class="divider fade-up"><span>Find Me Online</span></div>
+      <div class="social-grid">
+
+        <a href="https://tiktok.com/@yourhandle" class="social-link" target="_blank" rel="noopener"
+           style="--social-color:#ff0050;" data-delay="0">
+          <div class="social-icon">
+            <svg viewBox="0 0 24 24" fill="white">
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.15a8.15 8.15 0 004.78 1.52V7.22a4.85 4.85 0 01-1.01-.53z"/>
+            </svg>
+          </div>
+          <div class="social-info">
+            <div class="social-name">TikTok</div>
+            <div class="social-handle">@yourhandle</div>
+          </div>
+          <span class="social-arrow">&rarr;</span>
+        </a>
+
+        <a href="https://youtube.com/@yourhandle" class="social-link" target="_blank" rel="noopener"
+           style="--social-color:#ff0000;" data-delay="100">
+          <div class="social-icon">
+            <svg viewBox="0 0 24 24" fill="white">
+              <path d="M23 7s-.3-2-1.2-2.8c-1.1-1.2-2.4-1.2-3-1.3C16.2 2.8 12 2.8 12 2.8s-4.2 0-6.8.2c-.6.1-1.9.1-3 1.3C1.3 5 1 7 1 7S.7 9.2.7 11.5v2.1C.7 16 1 18 1 18s.3 2 1.2 2.8c1.1 1.2 2.6 1.1 3.3 1.2C7.6 22.2 12 22.2 12 22.2s4.2 0 6.8-.2c.6-.1 1.9-.1 3-1.3.9-.8 1.2-2.8 1.2-2.8s.3-2.2.3-4.4v-2.1C23.3 9.2 23 7 23 7zM9.7 15.5V8.4l8.1 3.6-8.1 3.5z"/>
+            </svg>
+          </div>
+          <div class="social-info">
+            <div class="social-name">YouTube</div>
+            <div class="social-handle">@yourhandle</div>
+          </div>
+          <span class="social-arrow">&rarr;</span>
+        </a>
+
+        <a href="https://facebook.com/yourpage" class="social-link" target="_blank" rel="noopener"
+           style="--social-color:#1877f2;" data-delay="200">
+          <div class="social-icon">
+            <svg viewBox="0 0 24 24" fill="white">
+              <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.27h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/>
+            </svg>
+          </div>
+          <div class="social-info">
+            <div class="social-name">Facebook</div>
+            <div class="social-handle">yourpage</div>
+          </div>
+          <span class="social-arrow">&rarr;</span>
+        </a>
+
+        <a href="https://instagram.com/yourhandle" class="social-link" target="_blank" rel="noopener"
+           style="--social-color:#e1306c;" data-delay="300">
+          <div class="social-icon">
+            <svg viewBox="0 0 24 24" fill="white">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </div>
+          <div class="social-info">
+            <div class="social-name">Instagram</div>
+            <div class="social-handle">@yourhandle</div>
+          </div>
+          <span class="social-arrow">&rarr;</span>
+        </a>
+
+      </div>
+    </section>
+
+    <footer class="fade-up">
+      <p>&copy; <span id="yr"></span> Prosper &mdash; All Rights Reserved &middot; <a href="#">Privacy</a></p>
+    </footer>
+
+  </main>
+
+  <script>
+    /* ── Year ─────────────────────────────────────── */
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    /* ── Avatar fallback ──────────────────────────── */
+    const avatarImg = document.getElementById('avatar-img');
+    avatarImg.addEventListener('error', () => avatarImg.classList.add('errored'));
+
+    /* ── Custom cursor (desktop only) ─────────────── */
+    const isMouse = window.matchMedia('(hover: hover)').matches;
+    let mx = -300, my = -300, rx = -300, ry = -300;
+
+    if (isMouse) {
+      const cur  = document.getElementById('cursor');
+      const ring = document.getElementById('cursor-ring');
+      const mgl  = document.getElementById('mouse-glow');
+
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        mgl.style.left = mx + 'px';
+        mgl.style.top  = my + 'px';
+      });
+
+      (function cursorLoop() {
+        cur.style.left  = mx + 'px'; cur.style.top  = my + 'px';
+        rx += (mx - rx) * 0.13;     ry += (my - ry) * 0.13;
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+        requestAnimationFrame(cursorLoop);
+      })();
+
+      document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => document.body.classList.add('cursor-grow'));
+        el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-grow'));
+      });
+    }
+
+    /* ── Scroll parallax glow ─────────────────────── */
+    const scrollGlow = document.getElementById('scroll-glow');
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const progress = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+      scrollGlow.style.top = (20 + progress * 70) + '%';
+    }, { passive: true });
+
+    /* ── Particle canvas ──────────────────────────── */
+    const canvas = document.getElementById('particles');
+    const ctx    = canvas.getContext('2d');
+    let W, H;
+
+    const pts = Array.from({ length: 65 }, () => ({
+      x:  Math.random() * window.innerWidth,
+      y:  Math.random() * window.innerHeight,
+      r:  Math.random() * 1.6 + 0.3,
+      vx: (Math.random() - .5) * .22,
+      vy: (Math.random() - .5) * .22,
+      a:  Math.random() * .5 + .1,
+      c:  ['#f0a500','#6a22e8','#e86c1a','#c81f6e'][Math.floor(Math.random()*4)]
+    }));
+
+    function resizeCanvas() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    (function drawParticles() {
+      ctx.clearRect(0, 0, W, H);
+      pts.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle  = p.c;
+        ctx.globalAlpha = p.a;
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      });
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawParticles);
+    })();
+
+    /* ── Click burst effect ───────────────────────── */
+    const clickLayer = document.getElementById('click-layer');
+    const burstColors = ['#f0a500','#6a22e8','#e86c1a','#c81f6e','#ffffff'];
+
+    function spawnBurst(x, y) {
+      /* Expanding ring */
+      const sizes  = [120, 200, 80];
+      const colors = ['rgba(106,34,232,.55)', 'rgba(240,165,0,.4)', 'rgba(232,108,26,.35)'];
+      sizes.forEach((sz, i) => {
+        const ring = document.createElement('div');
+        ring.className = 'click-ring';
+        ring.style.cssText = `
+          left:${x}px; top:${y}px;
+          width:${sz}px; height:${sz}px;
+          border: 2px solid ${colors[i]};
+          box-shadow: 0 0 18px ${colors[i]};
+          animation-delay: ${i * 60}ms;
+          animation-duration: ${0.65 + i * 0.1}s;
+        `;
+        clickLayer.appendChild(ring);
+        setTimeout(() => ring.remove(), 900 + i * 100);
+      });
+
+      /* Sparks */
+      const count = 12;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const dist  = 50 + Math.random() * 60;
+        const spark = document.createElement('div');
+        spark.className = 'click-spark';
+        const col = burstColors[Math.floor(Math.random() * burstColors.length)];
+        const size = 3 + Math.random() * 4;
+        spark.style.cssText = `
+          left:${x}px; top:${y}px;
+          width:${size}px; height:${size}px;
+          background: ${col};
+          box-shadow: 0 0 6px ${col};
+          --tx: ${Math.cos(angle) * dist}px;
+          --ty: ${Math.sin(angle) * dist}px;
+          animation-duration: ${0.45 + Math.random() * 0.25}s;
+        `;
+        clickLayer.appendChild(spark);
+        setTimeout(() => spark.remove(), 800);
+      }
+
+      /* Central glow flash */
+      const flash = document.createElement('div');
+      flash.style.cssText = `
+        position:absolute;
+        left:${x}px; top:${y}px;
+        width:60px; height:60px;
+        border-radius:50%;
+        background: radial-gradient(circle, rgba(240,165,0,.7) 0%, transparent 70%);
+        transform: translate(-50%,-50%) scale(0);
+        animation: click-expand .4s ease-out forwards;
+        pointer-events:none;
+      `;
+      clickLayer.appendChild(flash);
+      setTimeout(() => flash.remove(), 500);
+    }
+
+    document.addEventListener('click', e => spawnBurst(e.clientX, e.clientY));
+    document.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      spawnBurst(t.clientX, t.clientY);
+    }, { passive: true });
+
+    /* ── Scroll reveals ───────────────────────────── */
+    const revealSel = '.fade-up, .video-card, .announcement-card, .cta-btn, .social-link';
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const d = +(e.target.dataset.delay || 0);
+        setTimeout(() => e.target.classList.add('visible'), d);
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(revealSel).forEach(el => io.observe(el));
+
+    /* ── Scroll counter-animation on number text ──── */
+    /* Subtle section entrance: cards tilt in on scroll */
+    const tiltCards = document.querySelectorAll('.video-card, .announcement-card');
+    const tiltObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.transition = 'opacity .8s, transform .8s cubic-bezier(.175,.885,.32,1.275)';
+        }
+      });
+    }, { threshold: 0.05 });
+    tiltCards.forEach(c => tiltObs.observe(c));
+
+  </script>
+</body>
+</html>
